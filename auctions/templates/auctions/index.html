@@ -1,0 +1,26 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>{{ pagetitle }}</h2>
+    <div class="container-fluid">
+        <div class="row">
+            {% for items in listings %}
+                    <div class="card m-1" style="width: 18rem;">
+                        <img src="{{ items.image }}" class="img-fluid rounded mx-auto d-block m-auto p-1" alt="Image of {{ items.title }}" style="width: 100px; height:auto; ">
+                        <div class="card border-light p-2">
+                            <h5 class="card-title">{{ items.title }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                {% if items.bid is None %}
+                                    $0
+                                {% else %}
+                                    ${{ items.bid }}
+                                {% endif %}
+                            </h6>
+                            <p class="card-text text-truncate">{{ items.desc }}</p>
+                            <a href="{% url 'listings' id=items.id %}" class=" btn btn-primary">View</a>
+                        </div>
+                    </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

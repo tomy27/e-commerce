@@ -1,0 +1,91 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>{{ listing.title }}</h2>
+
+    {% if user.is_authenticated %}
+        {% if watchlisted %}
+            <form action="{% url 'watchlistHandler' id=listing.id %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="Remove">
+                <button type="submit" class="btn btn-secondary">Remove from watchlist</button>
+            </form>
+        {% else %}
+            <form action="{% url 'watchlistHandler' id=listing.id %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="Add">
+                <button type="submit" class="btn btn-primary">Add to watchlist</button>
+            </form>
+        {% endif %}
+    {% endif %}
+    <div class="container-fluid">
+        <img class="img-fluid" src="{{ listing.image }}" alt="{{ listing.title }}" style="max-width: 40vw; max-height: 40vh; padding: 10px;">
+    </div>
+
+    <p><h6>{{ listing.desc }}</h6></p>
+
+    {% if user.is_authenticated %}
+
+        <p>Listed by: {{ listing.listed_by }}</p>
+
+        <h6>Minimum price: ${{ listing.start_price }}</h6>
+
+        <h4>Current bid: ${{ bid }}</h4>
+
+        {% if listing.listed_by == user and listing.isActive %}
+        <form action="{% url 'closeAuction' %}" method="post">
+            {% csrf_token %}
+            <div class="form-group mt-1">
+                <input type="hidden" name="item" value="{{ listing.id }}">
+                <input class="btn btn-primary" type="submit" value="Close auction">
+            </div>
+        </form>
+        {% endif %}
+
+        {% if listing.isActive %}
+            {% if listing.listed_by != user %}
+                <form action="{% url 'bids' %}" method="post">
+                    {% csrf_token %}
+                    <div class="form-group mt-3">
+                        <input class="form-control" type="number" name="bid" placeholder="Your bid" min="0.01" max="100000" step=".01" pattern="^\d+(?:\.\d{1,2})?$" required>
+                        <input type="hidden" name="item" value="{{ listing.id }}">
+                        <input class="btn btn-primary mt-2" type="submit" value="Place bid">
+                    </div>
+                </form>
+            {% endif %}
+        {% else %}
+            <h4><strong>Auction is closed.</strong></h4>
+            {% if listing.bid.user == user %}
+                <h4><strong>Congratulations! You have won the auction.</strong></h4>
+            {% endif %}
+        {% endif %}
+
+        {% if message %}
+        <div style="color: red;">{{ message }}</div>
+        {% endif %}
+
+        {% if listing.isActive %}
+            <hr>
+            <h6>Comments</h6>
+            <form action="{% url 'comment' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group mt-2">
+                    <input class="form-control" type="text" name="comment" placeholder="Place your comment here." required>
+                    <input type="hidden" name="item" value="{{ listing.id }}">
+                    <input class="btn btn-primary mt-2" type="submit" value="Comment">
+                </div>
+            </form>
+            <div class="container"></div>
+                {% for comment in comments %}
+                    <p><strong>{{ comment.user }} on {{ comment.date }}:</strong>
+                    {{ comment.comment }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    {% else %}
+        <h4><strong>Log in to see bids.</strong></h4>
+    {% endif %}
+
+
+{% endblock %}
